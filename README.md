@@ -1,3 +1,42 @@
+# UniXNU-liuqin
+
+macOS 27.3 (26C5035r) on the Xiaomi Pad 6 Pro (`liuqin`, SM8475 / Adreno 730.1), booted through the [UniXNU](https://github.com/verssionhack/UniXNU) UEFI path.
+
+This repository holds only the liuqin-specific sources and build scripts. They overlay a UniXNU checkout (`ROOT` in the scripts points to it) and the external workspace under `/media/disk_4/unixnu_workspace/`. Firmware, Apple binaries and build outputs are not included.
+
+**Last image confirmed to reach the desktop:** `boot.img` sha256 `b2572ef0b08ecedd9fd866b0831a90ffb753c93f19b3216b895e4d4753a01c1a` (capture `boot-gpu-20261125-204913`: lit framebuffer, WindowServer, loginwindow, Dock, Finder, Terminal, Wi-Fi scan 14 APs, Bluetooth active). Kernel layout gates pass: `__TEXT=0x1d0000`, `__DATA=0x280000`, `aes_gate=PASS`.
+
+## Finished (verified on hardware)
+
+| Area | State | Notes |
+| --- | --- | --- |
+| Display 2880x1800 landscape | Done | 120 Hz default, 144 / 60 Hz switching, DPU double buffering |
+| Adreno 730 GPU / Metal | Done | GMU, ZAP, `AGXAccelerator` registered, DCVS, write-combining BOs |
+| Desktop (WindowServer, Dock, Finder) | Done | Auto-login user `unixnu`, setup skipped |
+| Persistent Data (UFS) | Done | APFS grown to ~199 GiB, reused across boots with `--persistent-data reuse` |
+| Touchscreen (NT36532) | Done | SPI4 + DMA, absolute pointer and click |
+| Backlight, buttons, Hall sensor | Done | |
+| Wi-Fi (WCN6855) | Scan works | `ath11k` + `mac80211` + `cfg80211`, `en0`, `unixnu-wpa_supplicant`; scan finds 10-25 APs |
+| Bluetooth (WCN6855) | Controller up | UART20 at 3.2 Mbps, `bluetoothd`, `BlueTool` |
+| Idle CPU / heat after login | Mostly done | `no-lc=1`, short exec deny list, disabled-service lists |
+
+## Not finished
+
+| Area | State |
+| --- | --- |
+| Wi-Fi association and DHCP | Not tested on hardware (WPA2-PSK via `wpa_cli`) |
+| Bluetooth pairing and data | Not tested with a peer device |
+| Keyboard cover (I2C13) | I2C write times out, no interrupts |
+| Touchpad on the cover | Unverified |
+| Pen and multitouch gestures | Not implemented |
+| CPU load during the first minute after login | Still high (`WindowServer`, `launchd`, `dasd`, `cloudd`, `mobileassetd`, `contextstored`, `searchpartyd`); a larger exec deny list is untested |
+| Audio, camera, battery and charging UI, sleep/wake | Not started |
+
+A larger exec deny list that redirected 40+ daemons to `/var/liuqin/parkd` made the desktop black (Dock and Finder never appeared) and is not used.
+
+
+---
+
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="assets/logo-dark.svg">
